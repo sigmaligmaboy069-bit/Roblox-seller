@@ -19,7 +19,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install requests pyinstaller==5.13.2
+        pip install requests pyinstaller==5.13.2 tinyaes
     
     - name: Build Windows executable
       run: |
@@ -44,7 +44,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install requests pyinstaller==5.13.2
+        pip install requests pyinstaller==5.13.2 tinyaes
     
     - name: Build macOS executable
       run: |
