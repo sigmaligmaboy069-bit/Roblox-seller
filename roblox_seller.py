@@ -8,11 +8,61 @@ import platform
 import sys
 from datetime import datetime
 
+# Pre-generated license keys (30 keys)
+VALID_LICENSES = [
+    "RBX-A1B2C3D4E5F6G7H8",
+    "RBX-I9J0K1L2M3N4O5P6",
+    "RBX-Q7R8S9T0U1V2W3X4",
+    "RBX-Y5Z6A7B8C9D0E1F2",
+    "RBX-G3H4I5J6K7L8M9N0",
+    "RBX-O1P2Q3R4S5T6U7V8",
+    "RBX-W9X0Y1Z2A3B4C5D6",
+    "RBX-E7F8G9H0I1J2K3L4",
+    "RBX-M5N6O7P8Q9R0S1T2",
+    "RBX-U3V4W5X6Y7Z8A9B0",
+    "RBX-C1D2E3F4G5H6I7J8",
+    "RBX-K9L0M1N2O3P4Q5R6",
+    "RBX-S7T8U9V0W1X2Y3Z4",
+    "RBX-A5B6C7D8E9F0G1H2",
+    "RBX-I3J4K5L6M7N8O9P0",
+    "RBX-Q1R2S3T4U5V6W7X8",
+    "RBX-Y9Z0A1B2C3D4E5F6",
+    "RBX-G7H8I9J0K1L2M3N4",
+    "RBX-O5P6Q7R8S9T0U1V2",
+    "RBX-W3X4Y5Z6A7B8C9D0",
+    "RBX-E1F2G3H4I5J6K7L8",
+    "RBX-M9N0O1P2Q3R4S5T6",
+    "RBX-U7V8W9X0Y1Z2A3B4",
+    "RBX-C5D6E7F8G9H0I1J2",
+    "RBX-K3L4M5N6O7P8Q9R0",
+    "RBX-S1T2U3V4W5X6Y7Z8",
+    "RBX-A9B0C1D2E3F4G5H6",
+    "RBX-I7J8K9L0M1N2O3P4",
+    "RBX-Q5R6S7T8U9V0W1X2",
+    "RBX-Y3Z4A5B6C7D8E9F0"
+]
+
+LICENSE_DB_FILE = "license_database.json"
+
 class LicenseManager:
     def __init__(self):
         self.license_file = "license.key"
         self.hwid_file = ".hwid"
+        self.db = self.load_database()
         
+    def load_database(self):
+        """Load the license database (tracks which licenses are used)"""
+        if os.path.exists(LICENSE_DB_FILE):
+            with open(LICENSE_DB_FILE, 'r') as f:
+                return json.load(f)
+        # Initialize with all licenses as unused
+        return {key: None for key in VALID_LICENSES}
+    
+    def save_database(self):
+        """Save the license database"""
+        with open(LICENSE_DB_FILE, 'w') as f:
+            json.dump(self.db, f, indent=4)
+    
     def get_hwid(self):
         """Get hardware ID (works on Windows and Mac)"""
         if platform.system() == "Windows":
@@ -26,10 +76,30 @@ class LicenseManager:
             hwid = str(uuid.getnode())
         return hashlib.sha256(hwid.encode()).hexdigest()
     
-    def verify_license_offline(self, license_key, hwid):
-        """Offline license verification"""
-        expected = hashlib.sha256(f"{hwid}X9K2LP4R8WQ5NM3Z".encode()).hexdigest()[:32]
-        return license_key == expected, "Offline verification"
+    def verify_license(self, license_key, hwid):
+        """Verify and potentially bind a license"""
+        # Check if license exists in valid licenses
+        if license_key not in VALID_LICENSES:
+            return False, "Invalid license key"
+        
+        # Load current database state
+        self.db = self.load_database()
+        
+        # Check if license is already bound
+        bound_hwid = self.db.get(license_key)
+        
+        if bound_hwid is None:
+            # License not yet used - bind it to this HWID
+            self.db[license_key] = hwid
+            self.save_database()
+            return True, "License activated successfully"
+        
+        if bound_hwid == hwid:
+            # License already bound to this computer
+            return True, "License verified"
+        
+        # License bound to different computer
+        return False, "License already used on another machine"
     
     def activate(self):
         """Activate the software"""
@@ -53,7 +123,7 @@ class LicenseManager:
                 input("\nPress Enter to exit...")
                 return False
             
-            valid, msg = self.verify_license_offline(license_key, hwid)
+            valid, msg = self.verify_license(license_key, hwid)
             if valid:
                 print("✓ License verified successfully!")
                 return True
@@ -65,7 +135,7 @@ class LicenseManager:
         print("\n📝 Enter your license key:")
         license_key = input("License Key: ").strip()
         
-        valid, msg = self.verify_license_offline(license_key, hwid)
+        valid, msg = self.verify_license(license_key, hwid)
         
         if valid:
             with open(self.license_file, 'w') as f:
@@ -76,7 +146,7 @@ class LicenseManager:
                     "system": platform.system()
                 }, f, indent=4)
             
-            print("\n✓ Activation successful!")
+            print(f"\n✓ {msg}")
             print("=" * 60)
             return True
         else:
@@ -305,7 +375,7 @@ def main():
         
         print("\n⚙ Configuration")
         print(f"1. Pricing Strategy: {seller.config['pricing_strategy']}")
-        print(f"2. Price Multiplier: {seller.config['price_multiplier']}")
+        print(f"2. Price Multiplier: {seller.config['pricing_multiplier']}")
         print(f"3. Item Type: {seller.config['item_type']}")
         print(f"4. Blacklisted Items: {len(seller.config['blacklist'])}")
         
