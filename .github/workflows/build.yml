@@ -1,0 +1,65 @@
+name: Build Executables
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install requests pyinstaller pyarmor
+    
+    - name: Obfuscate code
+      run: |
+        pyarmor gen --obf-code 1 --obf-mod 1 roblox_seller.py
+    
+    - name: Build Windows executable
+      run: |
+        pyinstaller --onefile --noconsole --key "k7m2p9w3x5z8a1c4e6g9j2n5q8t1v4y7" dist/roblox_seller.py
+    
+    - name: Upload Windows executable
+      uses: actions/upload-artifact@v3
+      with:
+        name: roblox-seller-windows
+        path: dist/dist/roblox_seller.exe
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install requests pyinstaller pyarmor
+    
+    - name: Obfuscate code
+      run: |
+        pyarmor gen --obf-code 1 --obf-mod 1 roblox_seller.py
+    
+    - name: Build macOS executable
+      run: |
+        pyinstaller --onefile --windowed --key "k7m2p9w3x5z8a1c4e6g9j2n5q8t1v4y7" dist/roblox_seller.py
+    
+    - name: Upload macOS executable
+      uses: actions/upload-artifact@v3
+      with:
+        name: roblox-seller-macos
+        path: dist/dist/roblox_seller

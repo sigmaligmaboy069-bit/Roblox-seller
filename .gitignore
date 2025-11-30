@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+dist/
+build/
+*.spec
+
+# Config files
+account.json
+config.json
+license.key
+.hwid
+
+# PyArmor
+.pyarmor/
+
+# macOS
+.DS_Store
