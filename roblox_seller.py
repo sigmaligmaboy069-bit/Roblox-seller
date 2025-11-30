@@ -375,7 +375,7 @@ def main():
         
         print("\n⚙ Configuration")
         print(f"1. Pricing Strategy: {seller.config['pricing_strategy']}")
-        print(f"2. Price Multiplier: {seller.config['pricing_multiplier']}")
+        print(f"2. Price Multiplier: {seller.config['price_multiplier']}")
         print(f"3. Item Type: {seller.config['item_type']}")
         print(f"4. Blacklisted Items: {len(seller.config['blacklist'])}")
         
